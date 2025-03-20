@@ -6,7 +6,7 @@ buildDir=$thisDir/build
 
 # Build library
 pushd cpython
-make -j all
+make -j16
 popd
 
 mkdir -p $buildDir

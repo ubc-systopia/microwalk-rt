@@ -36,6 +36,11 @@ int PinNotifyTestcaseEnd() { return 42; }
 int PinNotifyStackPointer(uint64_t spMin, uint64_t spMax) { return (int)(spMin + spMax + 42); }
 int PinNotifyAllocation(uint64_t address, uint64_t size) { return (int)(address + 23 * size); }
 int PinNotifyFilter(void **addr, size_t length) { return length + 42; }
+
+void InitRunTarget(FILE *inputFile)
+{
+    RunTarget(inputFile);
+}
 #pragma optimize("", on)
 
 void **filterAddr;
@@ -43,13 +48,13 @@ size_t filterAddrSize = 0;
 
 void ReadTargetAdresses()
 {
+    #if ENABLE_INSTR
     size_t opcodeLen = sizeof(python_opcode_targets) / sizeof(void*);
-    size_t binOpcodeLen = 0; // NB_OPARG_LAST + 1;
+    size_t binOpcodeLen = NB_OPARG_LAST + 1;
 
     filterAddrSize = opcodeLen + binOpcodeLen + 1;
     filterAddr = calloc(opcodeLen + binOpcodeLen + 1, sizeof(void*));
 
-    #if ENABLE_INSTR
     FILE *alias = fopen("./alias.txt", "w");
     FILE *filter = fopen("./filter.txt", "w");
 
@@ -60,7 +65,7 @@ void ReadTargetAdresses()
 
     for (size_t i = 0; i < opcodeLen; ++i) {
         void *addr = python_opcode_targets[i];
-        filterAddr[i] = addr;
+        filterAddr[i] = addr - 4;
 
         if (addr == NULL) continue;
 
@@ -80,7 +85,7 @@ void ReadTargetAdresses()
         fprintf(filter, "%p\n", addr);
     }
 
-    filterAddr[opcodeLen + binOpcodeLen] = &Py_RunMain;
+    filterAddr[opcodeLen + binOpcodeLen] = &InitRunTarget;
 
     fclose(alias);
     fclose(filter);
@@ -169,7 +174,7 @@ void TraceFunc()
             PinNotifyTestcaseStart(testcaseId);
 
             fprintf(stderr, "%d: run\n", testcaseId);
-            RunTarget(inputFile);
+            InitRunTarget(inputFile);
 
             fprintf(stderr, "%d: notify end\n", testcaseId);
             PinNotifyTestcaseEnd();
