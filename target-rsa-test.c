@@ -5,8 +5,6 @@
 
 PyConfig config;
 
-int PinNotifyFilter(void **addr, size_t length);
-
 extern void RunTarget(FILE* input)
 {
     Py_RunMain();

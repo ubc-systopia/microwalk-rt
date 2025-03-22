@@ -1,7 +1,3 @@
-#ifdef _GNU_SOURCE
-    #undef _GNU_SOURCE
-#endif
-
 #include <sys/resource.h>
 
 #include <stdio.h>
@@ -10,6 +6,12 @@
 #include <string.h>
 #include <errno.h>
 
+#define _GNU_SOURCE
+#define __USE_GNU
+#include <link.h>
+#include <stdlib.h>
+#include <stdio.h>
+
 #include "Python.h"
 
 #define Py_BUILD_CORE
@@ -17,6 +19,7 @@
 #include "internal/pycore_opcode_metadata.h"
 #include "internal/pycore_ceval.h"
 
+#include "Microwalk/PinTracer/FilterEntry.h"
 
 // Performs target initialization steps.
 // This function is called once in the very beginning for the first testcase file, to make sure that the target is entirely loaded.
@@ -35,60 +38,96 @@ int PinNotifyTestcaseStart(int t) { return t + 42; }
 int PinNotifyTestcaseEnd() { return 42; }
 int PinNotifyStackPointer(uint64_t spMin, uint64_t spMax) { return (int)(spMin + spMax + 42); }
 int PinNotifyAllocation(uint64_t address, uint64_t size) { return (int)(address + 23 * size); }
-int PinNotifyFilter(void **addr, size_t length) { return length + 42; }
-
-void InitRunTarget(FILE *inputFile)
-{
-    RunTarget(inputFile);
-}
+int PinNotifyFilter(FilterEntry *addr, size_t length) { return length + 42; }
 #pragma optimize("", on)
 
-void **filterAddr;
+FilterEntry *filterAddr;
 size_t filterAddrSize = 0;
+
+#define FilterTypeByteCodeHandler   FilterTypeWhiteList | FilterTypeControlFlow | FilterTypeJump
+#define FilterTypeMainCall          FilterTypeWhiteList | FilterTypeControlFlow | FilterTypeCall
+#define FilterTypeBinaryLookup      FilterTypeWhiteList | FilterTypeDataAccess  | FilterTypeRead
 
 void ReadTargetAdresses()
 {
     #if ENABLE_INSTR
-    size_t opcodeLen = sizeof(python_opcode_targets) / sizeof(void*);
+    size_t opcodeLen = sizeof(python_opcode_targets) / sizeof(python_opcode_targets[0]);
     size_t binOpcodeLen = NB_OPARG_LAST + 1;
 
     filterAddrSize = opcodeLen + binOpcodeLen + 1;
-    filterAddr = calloc(opcodeLen + binOpcodeLen + 1, sizeof(void*));
+    filterAddr = calloc(opcodeLen + binOpcodeLen + 1, sizeof(FilterEntry));
 
     FILE *alias = fopen("./alias.txt", "w");
-    FILE *filter = fopen("./filter.txt", "w");
 
-    if (alias == NULL || filter == NULL) {
+    if (alias == NULL) {
         fprintf(stderr, "Error opening metadata files");
         return;
     }
 
-    for (size_t i = 0; i < opcodeLen; ++i) {
-        void *addr = python_opcode_targets[i];
-        filterAddr[i] = addr - 4;
+    uintptr_t pythonAddr = 0;
+    int callback(struct dl_phdr_info *info, size_t size, void *data)
+    {
+        char *name = strstr(info->dlpi_name, "libpython3");
+        if (!name)
+            return 0;
 
-        if (addr == NULL) continue;
+        fprintf(stderr, "Detected %s at %p\n", name, (void *) info->dlpi_addr);
+        fprintf(alias, "%s\n", name);
+
+        pythonAddr = info->dlpi_addr;
+
+        return 0;
+    }
+    dl_iterate_phdr(callback, NULL);
+
+    uintptr_t max = 0;
+    uintptr_t min = UINTPTR_MAX;
+
+    for (size_t i = 0; i < opcodeLen; ++i) {
+        uintptr_t addr = (uintptr_t) python_opcode_targets[i];
+
+        FilterEntry entry = {
+            .type = FilterTypeByteCodeHandler,
+            .originStart = 0,
+            .originEnd = 0,
+            .targetStart = addr - 4,
+            .targetEnd = addr,
+        };
+        filterAddr[i] = entry;
+
+        if (addr == 0) continue;
+        if (addr > max) max = addr;
+        if (addr < min) min = addr;
 
         const char *name = _PyOpcode_OpName[i];
 
-        fprintf(alias, "%p:%lu:%s\n", addr, i, name);
-        fprintf(filter, "%p\n", addr);
+        fprintf(alias, "%08" PRIxPTR " %s\n", addr - pythonAddr - 4, name);
     }
 
     for (size_t i = 0; i < binOpcodeLen; ++i) {
-        void *addr = _PyEval_BinaryOps[i];
-        filterAddr[i + opcodeLen] = addr;
+        uintptr_t addr = (uintptr_t) _PyEval_BinaryOps[i];
 
-        const char *name = _PyOpcode_BinOpName[i];
-
-        fprintf(alias, "%p:%lu:%s\n", addr, i, name);
-        fprintf(filter, "%p\n", addr);
+        uintptr_t start = (uintptr_t) python_opcode_target_sub;
+        FilterEntry entry = {
+            .type = FilterTypeMainCall | FilterTypeLinearize,
+            .originStart = start,
+            .originEnd = start + 0x20,
+            .targetStart = addr,
+            .targetEnd = addr,
+        };
+        filterAddr[i + opcodeLen] = entry;
     }
 
-    filterAddr[opcodeLen + binOpcodeLen] = &InitRunTarget;
+    FilterEntry entry = {
+        .type = FilterTypeMainCall,
+        .originStart = 0,
+        .originEnd = 0,
+        .targetStart = (uintptr_t) &RunTarget,
+        .targetEnd = (uintptr_t) &RunTarget,
+    };
+    filterAddr[opcodeLen + binOpcodeLen] = entry;
 
     fclose(alias);
-    fclose(filter);
 
     PinNotifyFilter(filterAddr, filterAddrSize);
     #endif
@@ -174,7 +213,7 @@ void TraceFunc()
             PinNotifyTestcaseStart(testcaseId);
 
             fprintf(stderr, "%d: run\n", testcaseId);
-            InitRunTarget(inputFile);
+            RunTarget(inputFile);
 
             fprintf(stderr, "%d: notify end\n", testcaseId);
             PinNotifyTestcaseEnd();

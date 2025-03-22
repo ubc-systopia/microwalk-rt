@@ -11,7 +11,7 @@ popd
 
 mkdir -p $buildDir
 
-dwarfdump cpython/libpython3.13.so > $buildDir/libpython3.13.so.dwarf
+#dwarfdump cpython/libpython3.13.so > $buildDir/libpython3.13.so.dwarf
 objdump -d -Mintel cpython/libpython3.13.so > $buildDir/libpython3.13.so.dump
 
 # Generate MAP file for library
@@ -24,11 +24,12 @@ for target in $(find . -maxdepth 1 -name "target-*.c" -print)
 do
   targetName=$(basename -- ${target%.*})
 
-  gcc main.c $targetName.c -g -fno-plt -fno-inline -fno-split-stack -L cpython -Wl,-rpath=$thisDir/cpython/ -lpython3.13 -I cpython -I cpython/Include -o $buildDir/$targetName
+  gcc main.c $targetName.c -g -fno-inline -fno-split-stack -L cpython -Wl,-rpath=$thisDir/cpython/ -lpython3.13 -I cpython -I cpython/Include -o $buildDir/$targetName
 
   pushd Microwalk/Tools/MapFileGenerator/bin/Release/net8.0/
   dotnet MapFileGenerator.dll $buildDir/$targetName $buildDir/$targetName.map
   popd
 
-  dwarfdump -l $buildDir/$targetName > $buildDir/$targetName.dwarf
+  #dwarfdump -l $buildDir/$targetName > $buildDir/$targetName.dwarf
+  #objdump -d -Mintel $buildDir/$targetName > $buildDir/$targetName.dump
 done
