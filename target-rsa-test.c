@@ -3,8 +3,6 @@
 
 #include <Python.h>
 
-PyConfig config;
-
 extern void RunTarget(FILE* input)
 {
     Py_RunMain();
@@ -17,14 +15,19 @@ extern void InitTarget(FILE* input)
         return;
     plain[1] = '\0';
 
+    PyConfig config;
+	PyConfig_InitIsolatedConfig(&config);
+	PyConfig_SetString(&config, &config.executable, L"../../../../venv/bin/python");
+	PyConfig_SetString(&config, &config.run_filename, L"../../../../rsa-test.py");
 
-    PyConfig_InitPythonConfig(&config);
-    config.home = L"/home/kdankert/508/cpython-microwalk/cpython";
-    config.pythonpath_env = L"/home/kdankert/508/cpython-microwalk/cpython/Lib";
-    config.run_filename = L"/home/kdankert/508/cpython-microwalk/rsa-test.py";
-
-    char* argv[2] = { "/home/kdankert/508/cpython-microwalk/rsa-test.py", plain };
+	char* argv[2] = { "../../../../rsa-test.py", plain };
     PyConfig_SetBytesArgv(&config, 2, argv);
 
-    Py_InitializeFromConfig(&config);
+	const PyStatus status = Py_InitializeFromConfig(&config);
+	PyConfig_Clear(&config);
+
+	if (PyStatus_Exception(status)) {
+	    fprintf(stderr, "Failed to set up CPython environment in %s: %s", status.func, status.err_msg);
+		Py_ExitStatusException(status);
+	}
 }

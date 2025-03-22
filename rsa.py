@@ -11,6 +11,6 @@ def mod_exp(x, e, n):
             e = e - 1
     return y
 
-res = mod_exp(0x7, ord(sys.argv[0]), 0x8F)
+res = mod_exp(0x7, ord(sys.argv[1]), 0x8F)
 
 print(res, file=sys.stderr);

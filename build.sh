@@ -4,11 +4,6 @@ set -x
 thisDir=$(pwd)
 buildDir=$thisDir/build
 
-# Build library
-pushd cpython
-make -j16
-popd
-
 mkdir -p $buildDir
 
 #dwarfdump cpython/libpython3.13.so > $buildDir/libpython3.13.so.dwarf
