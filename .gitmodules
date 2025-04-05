@@ -1,5 +1,5 @@
 [submodule "cpython"]
-	path = cpython
+	path = cpython/cpython
 	url = git@github.com:ubc-systopia/cpython.git
 	branch = cpsc-508
 [submodule "Microwalk"]

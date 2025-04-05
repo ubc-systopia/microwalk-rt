@@ -1,4 +1,5 @@
-/build/*
-/work/*
-/venv
-/dist
+/**/build/*
+/**/work/*
+/**/venv
+/**/dist
+/.idea/

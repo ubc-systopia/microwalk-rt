@@ -19,7 +19,7 @@
 #include "internal/pycore_opcode_metadata.h"
 #include "internal/pycore_ceval.h"
 
-#include "Microwalk/PinTracer/FilterEntry.h"
+#include "PinTracer/FilterEntry.h"
 
 // Performs target initialization steps.
 // This function is called once in the very beginning for the first testcase file, to make sure that the target is entirely loaded.
