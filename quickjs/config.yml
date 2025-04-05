@@ -1,0 +1,69 @@
+constants:
+    TARGET_PATH: $$CONFIG_PATH$$/build/$$$TARGET_NAME$$$
+    LIBRARY_PATH: $$CONFIG_PATH$$/cpython/
+    WORK_DIR: $$$WORK_DIR$$$/$$$TARGET_NAME$$$
+    PIN_ROOT: $$$PIN_ROOT$$$
+    MICROWALK_DIR: $$$MICROWALK_DIR$$$
+---
+general:
+    logger:
+        log-level: debug
+        file: $$WORK_DIR$$/work/log.txt
+    monitor:
+        enable: true
+        sample-rate: 50
+
+testcase:
+    module: load
+    module-options:
+        input-directory: $$$TESTCASE_DIRECTORY$$$
+
+trace:
+    module: pin
+    module-options:
+        output-directory: $$WORK_DIR$$/work/traces
+        pin-tool-path: $$MICROWALK_DIR$$$/PinTracer/obj-intel64/PinTracer.so
+        pin-path: $$PIN_ROOT$$
+        wrapper-path: $$TARGET_PATH$$
+        environment:
+            LD_LIBRARY_PATH: $$LIBRARY_PATH$$
+        images:
+            - libquickjs.so
+            - $$$TARGET_NAME$$$
+    options:
+        input-buffer-size: 4
+
+preprocess:
+    module: pin
+    module-options:
+        output-directory: $$WORK_DIR$$/work/traces
+        store-traces: true
+        keep-raw-traces: true
+    options:
+        input-buffer-size: 2
+        max-parallel-threads: 4
+
+analysis:
+    modules:
+        - module: control-flow-leakage
+          module-options:
+              output-directory: $$WORK_DIR$$/persist/results
+              deferred-load: true
+              map-files:
+                  - build/$$$TARGET_NAME$$$.map
+                  - build/libquickjs.so.map
+                  - work/$$$TARGET_NAME$$$/work/traces/alias.txt
+              dump-call-tree: true
+              include-testcases-in-call-stacks: true
+        - module: dump
+          module-options:
+              output-directory: $$WORK_DIR$$/persist/traces
+              deferred-load: true
+              map-files:
+                  - build/$$$TARGET_NAME$$$.map
+                  - build/libquickjs.so.map
+                  - work/$$$TARGET_NAME$$$/work/traces/alias.txt
+
+    options:
+        input-buffer-size: 1
+        max-parallel-threads: 1

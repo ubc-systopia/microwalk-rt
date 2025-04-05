@@ -6,3 +6,7 @@
 	path = Microwalk
 	url = git@github.com:kdankert-ubc/Microwalk.git
 	branch = cpsc-508
+[submodule "quickjs/quickjs"]
+	path = quickjs/quickjs
+	url = git@github.com:ubc-systopia/quickjs.git
+	branch = cpsc-508
