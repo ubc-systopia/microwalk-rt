@@ -23,7 +23,7 @@ trace:
     module-options:
         output-directory: $$WORK_DIR$$/work/traces
         pin-tool-path: $$MICROWALK_DIR$$$/PinTracer/obj-intel64/PinTracer.so
-        pin-path: $$PIN_ROOT$$
+        pin-path: $$PIN_ROOT$$/pin
         wrapper-path: $$TARGET_PATH$$
         environment:
             LD_LIBRARY_PATH: $$LIBRARY_PATH$$
