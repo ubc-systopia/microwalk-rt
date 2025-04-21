@@ -13,4 +13,4 @@ def mod_exp(x, e, n):
 
 res = mod_exp(0x7, ord(sys.argv[1]), 0x8F)
 
-print(res, file=sys.stderr);
+print(res, file=sys.stderr)

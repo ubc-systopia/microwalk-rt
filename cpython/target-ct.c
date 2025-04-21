@@ -18,7 +18,7 @@ extern void InitTarget(FILE* input)
     PyConfig config;
 	PyConfig_InitIsolatedConfig(&config);
 	PyConfig_SetString(&config, &config.executable, L"../../../../venv/bin/python");
-	PyConfig_SetString(&config, &config.run_filename, L"../../../../ct.py");
+	PyConfig_SetString(&config, &config.run_filename, L"../../../../python-ct.py");
 
 	char* argv[2] = { "../../../../ct.py", plain };
     PyConfig_SetBytesArgv(&config, 2, argv);

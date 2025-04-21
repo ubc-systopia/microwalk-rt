@@ -9,7 +9,7 @@ JSRuntime *rtm;
 
 extern void RunTarget(FILE* input)
 {
-    js_std_eval_file(ctx, "../../../../ct.js", 0);
+    js_std_eval_file(ctx, "../../../../js-ct.js", 0);
 
     js_std_free_handlers(rtm);
     JS_FreeContext(ctx);

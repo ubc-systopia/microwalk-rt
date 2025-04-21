@@ -10,7 +10,7 @@ extern void RunTarget(FILE* input)
 
 extern void InitTarget(FILE* input)
 {
-    uint8_t plain[2];
+	char plain[2];
     if(fread(plain, 1, 1, input) != 1)
         return;
     plain[1] = '\0';
@@ -18,9 +18,9 @@ extern void InitTarget(FILE* input)
     PyConfig config;
 	PyConfig_InitIsolatedConfig(&config);
 	PyConfig_SetString(&config, &config.executable, L"../../../../venv/bin/python");
-	PyConfig_SetString(&config, &config.run_filename, L"../../../../python-rsa.py");
+	PyConfig_SetString(&config, &config.run_filename, L"../../../../python-assign.py");
 
-	char* argv[2] = { "../../../../rsa.py", plain };
+	char* argv[2] = { "../../../../ct.py", plain };
     PyConfig_SetBytesArgv(&config, 2, argv);
 
 	const PyStatus status = Py_InitializeFromConfig(&config);

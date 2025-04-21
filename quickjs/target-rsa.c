@@ -8,7 +8,7 @@ JSRuntime *rtm;
 
 extern void RunTarget(FILE* input)
 {
-    js_std_eval_file(ctx, "../../../../rsa.js", 0);
+    js_std_eval_file(ctx, "../../../../js-rsa.js", 0);
 
     js_std_free_handlers(rtm);
     JS_FreeContext(ctx);
