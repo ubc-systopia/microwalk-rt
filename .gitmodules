@@ -1,12 +1,15 @@
 [submodule "cpython"]
 	path = cpython/cpython
 	url = git@github.com:ubc-systopia/cpython.git
-	branch = cpsc-508
+	branch = microwalk-rt
+	ignore = dirty
 [submodule "Microwalk"]
 	path = Microwalk
 	url = git@github.com:kdankert-ubc/Microwalk.git
-	branch = cpsc-508
-[submodule "quickjs/quickjs"]
+	branch = microwalk-rt
+	ignore = dirty
+[submodule "quickjs"]
 	path = quickjs/quickjs
 	url = git@github.com:ubc-systopia/quickjs.git
-	branch = cpsc-508
+	branch = microwalk-rt
+	ignore = dirty

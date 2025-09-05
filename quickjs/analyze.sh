@@ -4,7 +4,7 @@ set -x
 thisDir=$(pwd)
 export WORK_DIR="$thisDir/work"
 export MICROWALK_DIR=$(realpath "$thisDir/../Microwalk")
-#export PIN_ROOT=$(realpath "$thisDir/../../pin")
+export PIN_ROOT=$(realpath "$thisDir/../pin-external")
 
 mkdir -p $WORK_DIR
 

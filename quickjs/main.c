@@ -101,8 +101,8 @@ void ReadTargetAdresses()
         .type = FilterTypeMainCall,
         .originStart = 0,
         .originEnd = 0,
-        .targetStart = (uintptr_t) &js_std_eval_file,
-        .targetEnd = (uintptr_t) &js_std_eval_file,
+        .targetStart = (uintptr_t) &RunTarget,
+        .targetEnd = (uintptr_t) &RunTarget,
     };
     filterAddr[opcodeLen] = entry;
 
