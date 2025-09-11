@@ -5,7 +5,7 @@
 	ignore = dirty
 [submodule "Microwalk"]
 	path = Microwalk
-	url = git@github.com:kdankert-ubc/Microwalk.git
+	url = git@github.com:ubc-systopia/Microwalk.git
 	branch = microwalk-rt
 	ignore = dirty
 [submodule "quickjs"]

@@ -12,7 +12,7 @@ Currently supported language runtimes are:
 
 1. Clone the repository including its submodules (incl. dependencies and language runtimes)
   ```bash
-  git clone --recurse-submodules -j$(nproc) git@github.com:kdankert-ubc/microwalk-rt.git
+  git clone --recurse-submodules -j$(nproc) git@github.com:ubc-systopia/microwalk-rt.git
   ```
 2. Download [Intel Pin](https://www.intel.com/content/www/us/en/developer/articles/tool/pin-a-dynamic-binary-instrumentation-tool.html) and set the `PIN_ROOT` environment variable to the directory containing the `pin` executable.
 3. Move into the language runtime directory.
