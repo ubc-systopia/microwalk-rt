@@ -8,4 +8,6 @@ function mod_exp(x, e, n) {
     return y;
 }
 
-res = mod_exp(0x7, +scriptArgs[1], 0x8f);
+function test(arg) {
+    res = mod_exp(0x7, arg, 0x8f);
+}

@@ -1,7 +1,6 @@
 constants:
-    TARGET_PATH: $$CONFIG_PATH$$/build/$$$TARGET_NAME$$$
-    LIBRARY_PATH: $$CONFIG_PATH$$/cpython/
-    WORK_DIR: $$$WORK_DIR$$$/$$$TARGET_NAME$$$
+    WORK_DIR: $$$WORK_DIR$$$/$$$TARGET_NAME$$$/$$$SUBTARGET_NAME$$$
+    TARGET_PATH: $$$BUILD_DIR$$$/$$$TARGET_NAME$$$
     PIN_ROOT: $$$PIN_ROOT$$$
     MICROWALK_DIR: $$$MICROWALK_DIR$$$
 ---
@@ -25,8 +24,8 @@ trace:
         pin-tool-path: $$MICROWALK_DIR$$$/PinTracer/obj-intel64/PinTracer.so
         pin-path: $$PIN_ROOT$$/pin
         wrapper-path: $$TARGET_PATH$$
-        environment:
-            LD_LIBRARY_PATH: $$LIBRARY_PATH$$
+        wrapper-args:
+            - $$$SCRIPT_FILE$$$
         images:
             - libquickjs.so
             - $$$TARGET_NAME$$$
@@ -40,7 +39,7 @@ preprocess:
         store-traces: true
         keep-raw-traces: true
     options:
-        input-buffer-size: 2
+        input-buffer-size: 4
         max-parallel-threads: 4
 
 analysis:
@@ -50,9 +49,9 @@ analysis:
               output-directory: $$WORK_DIR$$/persist/results
               deferred-load: true
               map-files:
-                  - build/$$$TARGET_NAME$$$.map
-                  - build/libquickjs.so.map
-                  - work/$$$TARGET_NAME$$$/work/traces/alias.txt
+                  - $$$BUILD_DIR$$$/$$$TARGET_NAME$$$.map
+                  - $$$BUILD_DIR$$$/libquickjs.so.map
+                  - $$WORK_DIR$$/work/traces/alias.txt
               dump-call-tree: true
               include-testcases-in-call-stacks: true
         - module: dump
@@ -60,9 +59,9 @@ analysis:
               output-directory: $$WORK_DIR$$/persist/traces
               deferred-load: true
               map-files:
-                  - build/$$$TARGET_NAME$$$.map
-                  - build/libquickjs.so.map
-                  - work/$$$TARGET_NAME$$$/work/traces/alias.txt
+                  - $$$BUILD_DIR$$$/$$$TARGET_NAME$$$.map
+                  - $$$BUILD_DIR$$$/libquickjs.so.map
+                  - $$WORK_DIR$$/work/traces/alias.txt
 
     options:
         input-buffer-size: 1
