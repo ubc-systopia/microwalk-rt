@@ -1,10 +1,9 @@
 #include <inttypes.h>
 #include <link.h>
-#include <stdio.h>
 
 #include "quickjs/quickjs-libc.h"
 
-#include "wrapper.h"
+#include "../wrapper.h"
 
 JSRuntime *rtm = NULL;
 JSContext *ctx = NULL;
@@ -27,14 +26,14 @@ int js_std_eval_file_global(JSContext *ctx, const char *filename) {
     return 0;
 }
 
-void init_target(const char *script_name) {
+void init_target(const char *file) {
     rtm = JS_NewRuntime();
     js_std_set_worker_new_context_func(JS_NewContext);
     js_std_init_handlers(rtm);
     ctx = JS_NewContext(rtm);
     JS_SetModuleLoaderFunc2(rtm, NULL, js_module_loader, js_module_check_attributes, NULL);
 
-    js_std_eval_file_global(ctx, script_name);
+    js_std_eval_file_global(ctx, file);
     global_obj = JS_GetGlobalObject(ctx);
     fn = JS_GetPropertyStr(ctx, global_obj, "test");
 }

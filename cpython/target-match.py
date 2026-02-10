@@ -1,5 +1,3 @@
-import sys
-
 def test(v):
     y = 0
     match v & 0b11:
@@ -12,7 +10,3 @@ def test(v):
         case 0b11:
             y = y + 1 - 2
     return y
-
-res = test(ord(sys.argv[1]))
-
-print(res, file=sys.stderr)
