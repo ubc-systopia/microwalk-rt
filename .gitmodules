@@ -6,10 +6,10 @@
 [submodule "Microwalk"]
 	path = Microwalk
 	url = git@github.com:ubc-systopia/Microwalk.git
-	branch = microwalk-rt
+	branch = localization
 	ignore = dirty
 [submodule "quickjs"]
 	path = quickjs/quickjs
 	url = git@github.com:ubc-systopia/quickjs.git
-	branch = microwalk-rt
+	branch = localization
 	ignore = dirty
