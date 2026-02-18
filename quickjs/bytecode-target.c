@@ -5,37 +5,69 @@
 
 #include "../wrapper.h"
 
-JSRuntime *rtm = NULL;
+JSRuntime *rt = NULL;
 JSContext *ctx = NULL;
-JSValue global_obj = {};
 JSValue fn = {};
 
 FilterEntry *filter_addr = NULL;
 size_t filter_addr_size = 0;
 
-int js_std_eval_file_global(JSContext *ctx, const char *filename) {
+JSRuntime *js_std_new_runtime() {
+    JSRuntime* rt = JS_NewRuntime();
+    js_std_set_worker_new_context_func(JS_NewContext);
+    js_std_init_handlers(rt);
+    return rt;
+}
+
+JSContext *js_std_new_context(JSRuntime *rt) {
+    JSContext *ctx = JS_NewContext(rt);
+    JS_SetModuleLoaderFunc2(rt, NULL, js_module_loader, js_module_check_attributes, NULL);
+    js_std_add_helpers(ctx, -1, NULL);
+    return ctx;
+}
+
+JSValue js_std_load_file(JSContext *ctx, const char *filename) {
     size_t buf_len = 0;
     uint8_t *buf = js_load_file(ctx, &buf_len, filename);
-    const JSValue val = JS_Eval(ctx, (const char *) buf, buf_len, filename, JS_EVAL_TYPE_GLOBAL);
-    if (JS_IsException(val)) {
+    const JSValue module = JS_Eval(ctx, (const char *) buf, buf_len, filename, JS_EVAL_TYPE_MODULE | JS_EVAL_FLAG_COMPILE_ONLY);
+    if (JS_IsException(module)) {
         js_std_dump_error(ctx);
-        return -1;
+        mw_exit_error("Script compilation failed");
     }
-    JS_FreeValue(ctx, val);
+    js_module_set_import_meta(ctx, module, 1, 1);
+    JSValue promise = JS_EvalFunction(ctx, module);
+    if (JS_IsException(promise)) {
+        js_std_dump_error(ctx);
+        mw_exit_error("Script initialization failed");
+    }
+    JSValue res = js_std_await(ctx, promise);
+    if (JS_IsException(res)) {
+        js_std_dump_error(ctx);
+        mw_exit_error("Script async initialization failed");
+    }
+    JS_FreeValue(ctx, res);
     js_free(ctx, buf);
-    return 0;
+    return module;
+}
+
+JSValue js_std_get_fn(JSContext *ctx, JSValue module, const char *name) {
+    if (JS_VALUE_GET_TAG(module) != JS_TAG_MODULE) {
+        return JS_UNDEFINED;
+    }
+    JSModuleDef *m = JS_VALUE_GET_PTR(module);
+    JSValue ns = JS_GetModuleNamespace(ctx, m);
+    JSValue fn = JS_GetPropertyStr(ctx, ns, name);
+    JS_Call(ctx, fn, JS_UNDEFINED, 0, NULL);
+    JS_FreeValue(ctx, ns);
+    return fn;
 }
 
 void init_target(const char *file) {
-    rtm = JS_NewRuntime();
-    js_std_set_worker_new_context_func(JS_NewContext);
-    js_std_init_handlers(rtm);
-    ctx = JS_NewContext(rtm);
-    JS_SetModuleLoaderFunc2(rtm, NULL, js_module_loader, js_module_check_attributes, NULL);
+    rt = js_std_new_runtime();
+    ctx = js_std_new_context(rt);
 
-    js_std_eval_file_global(ctx, file);
-    global_obj = JS_GetGlobalObject(ctx);
-    fn = JS_GetPropertyStr(ctx, global_obj, "test");
+    JSValue module = js_std_load_file(ctx, file);
+    fn = js_std_get_fn(ctx, module, "test");
 }
 
 void init_target_run() {
@@ -54,7 +86,13 @@ void target_run(const char *buffer, const size_t buffer_size) {
     }
 
     JSValue arg = JS_NewInt32(ctx, input);
-    JS_Call(ctx, fn, global_obj, 1, &arg);
+    JSValue res = JS_Call(ctx, fn, JS_UNDEFINED, 1, &arg);
+    if (JS_IsException(res)) {
+        js_std_dump_error(ctx);
+        mw_exit_error("Script evaluation failed");
+    }
+
+    JS_FreeValue(ctx, res);
     JS_FreeValue(ctx, arg);
 }
 
@@ -138,9 +176,7 @@ void cleanup_target_filter(void) {
 
 void cleanup_target(void) {
     JS_FreeValue(ctx, fn);
-    JS_FreeValue(ctx, global_obj);
-
-    js_std_free_handlers(rtm);
     JS_FreeContext(ctx);
-    JS_FreeRuntime(rtm);
+    js_std_free_handlers(rt);
+    JS_FreeRuntime(rt);
 }

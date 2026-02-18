@@ -1,5 +1,5 @@
 function mod_exp(x, e, n) {
-    y = 1;
+    let y = 1;
     while (e > 0) {
         if (e % 2 == 0) {
             y = (x * x) % n;
@@ -12,6 +12,6 @@ function mod_exp(x, e, n) {
     return y;
 }
 
-function test(arg) {
-    res = mod_exp(0x7, arg, 0x8f);
+export function test(arg) {
+    return mod_exp(0x7, arg, 0x8f);
 }
