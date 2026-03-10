@@ -1,5 +1,4 @@
 #include <inttypes.h>
-#include <link.h>
 
 #include "quickjs/quickjs-libc.h"
 
@@ -62,74 +61,14 @@ void cleanup_target_run() {
     // Nothing to do
 }
 
-uintptr_t quickjs_addr = 0;
-FILE *alias = NULL;
-
-int phdr_callback(struct dl_phdr_info *info, size_t size, void *data) {
-    char *name = strstr(info->dlpi_name, "libquickjs");
-    if (!name)
-        return 0;
-
-    fprintf(stderr, "Detected %s at %p\n", name, (void *) info->dlpi_addr);
-    fprintf(alias, "%s\n", name);
-
-    quickjs_addr = info->dlpi_addr;
-    return 0;
-}
-
 void init_target_filter(void) {
-#if ENABLE_HANDLER_EXPORT
-    const size_t opcode_len = sizeof(quickjs_opcode_targets) / sizeof(quickjs_opcode_targets[0]);
-
-    filter_addr_size = opcode_len + 1;
-    filter_addr = calloc(filter_addr_size, sizeof(FilterEntry));
-
-    alias = fopen("./alias.txt", "w");
-
-    if (alias == NULL) {
-        fprintf(stderr, "Error opening metadata files");
-        return;
-    }
-
-    dl_iterate_phdr(phdr_callback, NULL);
-
-    uintptr_t max = 0;
-    uintptr_t min = UINTPTR_MAX;
-
-    for (size_t i = 0; i < opcode_len; ++i) {
-        const uintptr_t addr = (uintptr_t) quickjs_opcode_targets[i];
-
-        const FilterEntry entry = {
-            .type = FilterTypeByteCodeHandler,
-            .originStart = 0,
-            .originEnd = 0,
-            .targetStart = addr - 4,
-            .targetEnd = addr,
-        };
-        filter_addr[i] = entry;
-
-        if (addr == 0) continue;
-        if (addr > max) max = addr;
-        if (addr < min) min = addr;
-
-        const char *name = quickjs_opcode_target_names[i];
-
-        fprintf(alias, "%08" PRIxPTR " %s\n", addr - quickjs_addr - 4, name);
-    }
-
-    const FilterEntry entry = {
+    PinNotifyFilterAdd(&(FilterEntry){
         .type = FilterTypeMainCall,
         .originStart = 0,
         .originEnd = 0,
         .targetStart = (uintptr_t) &target_run,
         .targetEnd = (uintptr_t) &target_run,
-    };
-    filter_addr[opcode_len] = entry;
-
-    fclose(alias);
-
-    PinNotifyFilter(filter_addr, filter_addr_size);
-#endif
+    });
 }
 
 void cleanup_target_filter(void) {

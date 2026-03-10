@@ -33,4 +33,8 @@ extern int PinNotifyAllocation(uint64_t address, uint64_t size);
 
 extern int PinNotifyFilter(FilterEntry *addr, size_t length);
 
+extern int PinNotifyFilterAdd(FilterEntry *addr);
+
+extern int PinNotifyFilterRemove(FilterType type, uintptr_t origin, uintptr_t target);
+
 void mw_exit_error(const char *format, ...);

@@ -20,9 +20,6 @@ do
   export SUBTARGET_NAME="$targetName"
   export SCRIPT_FILE=$(realpath "$target")
 
-  mkdir -p $WORK_DIR/$targetName/work
-  mkdir -p $WORK_DIR/$targetName/persist
-
   time dotnet "$MICROWALK_DIR/Microwalk/bin/Release/net8.0/Microwalk.dll" $thisDir/config.yml -p "$MICROWALK_DIR/Microwalk.Plugins.PinTracer/bin/Release/net8.0"
 
   echo "Running target ${targetName} successful"
