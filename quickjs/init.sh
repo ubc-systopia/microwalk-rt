@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
 cd quickjs
+export CPATH="$CPATH:$(realpath ../../Microwalk)"
+export CFLAGS="-DMWRT"
+export LDFLAGS="-DMWRT"
 PREFIX=$(realpath ../dist) make -j$(nproc) install
 cd ..
 
