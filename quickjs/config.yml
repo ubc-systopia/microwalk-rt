@@ -52,7 +52,7 @@ analysis:
                   - $$$BUILD_DIR$$$/$$$TARGET_NAME$$$.map
                   - $$$BUILD_DIR$$$/libquickjs.so.map
                   - $$WORK_DIR$$/work/traces/alias.txt
-              source-info-mappings: $$WORK_DIR$$/work/traces/source-info-mappings.temp
+              source-info-mappings: $$WORK_DIR$$/work/traces/source-info-mappings.txt
               dump-call-tree: true
               include-testcases-in-call-stacks: true
         - module: dump
@@ -63,7 +63,7 @@ analysis:
                   - $$$BUILD_DIR$$$/$$$TARGET_NAME$$$.map
                   - $$$BUILD_DIR$$$/libquickjs.so.map
                   - $$WORK_DIR$$/work/traces/alias.txt
-              source-info-mappings: $$WORK_DIR$$/work/traces/source-info-mappings.temp
+              source-info-mappings: $$WORK_DIR$$/work/traces/source-info-mappings.txt
 
 
     options:
